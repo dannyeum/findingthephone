@@ -82,19 +82,25 @@
   .class-view .bar .lb{width:150px}
   .class-view .bar .tr{height:32px}
   .hide{display:none!important}
-  .mode-badge{font-size:12px;padding:2px 8px;border-radius:99px;background:#ffffff22}
+  .mode-badge{font-size:13px;padding:5px 12px;border-radius:99px;background:#ffffff22;color:#fff;border:none;cursor:pointer;font-weight:600}
+  .qrbox{background:#fff;border-radius:16px;padding:16px;display:inline-block;border:1px solid var(--line)}
+  .qrbox img,.qrbox svg{display:block;width:240px;height:240px}
+  .qr-full{position:fixed;inset:0;background:#fff;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:20px}
+  .qr-full .qrbox svg{width:min(70vh,80vw);height:min(70vh,80vw)}
+  .linkbox{word-break:break-all;font-size:13px;background:var(--soft);padding:10px;border-radius:10px}
   @media(max-width:600px){main{padding:12px}.card{padding:16px}}
 </style>
 </head>
 <body>
 <header>
   <h1>🔍 우리 반 탐정단</h1><span class="tag">함께하는 프로파일링</span>
-  <span class="mode-badge" id="connBadge"></span>
+  <button class="mode-badge" id="connBadge" onclick="go('connect')" title="API 주소 입력 / 연결 상태"></button>
   <span class="sp"></span>
   <button id="homeBtn" onclick="go('home')">처음으로</button>
 </header>
 <main id="app"></main>
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
 <script>
 /* =========================================================
@@ -102,6 +108,10 @@
    - 학생은 이름 없이 '번호'로만 구분합니다.
    - Apps Script 웹앱 URL이 없으면 '체험 모드'(이 기기 저장)로 동작합니다.
    ========================================================= */
+/* ▼ (선택) 여기에 Apps Script 웹 앱 주소(…/exec)를 넣고 GitHub에 다시 올리면,
+     모든 기기가 별도 입력 없이 자동으로 구글 시트에 연결됩니다. */
+const DEFAULT_API = '';
+
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -112,7 +122,7 @@ if (qs.get('n'))   LS.set('cp_n', Math.max(1, Math.min(60, parseInt(qs.get('n'))
 const STUDENT_ONLY = qs.get('mode') === 'student';
 
 const state = {
-  api: LS.get('cp_api', ''),
+  api: LS.get('cp_api', '') || DEFAULT_API,
   n: LS.get('cp_n', 26),
   sheet: LS.get('cp_sheet', 'https://docs.google.com/spreadsheets/d/1UvNAn1UPXNTu__Upa95--7HteJ4-xl1At8ePPkv_4_0/edit'),
   pin: '',
@@ -151,7 +161,12 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 function nowStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
-function updateBadge(){ $('#connBadge').textContent = state.api ? '● 구글 시트 연결됨' : '● 체험 모드(이 기기에만 저장)'; }
+function updateBadge(){
+  const b = $('#connBadge');
+  b.textContent = state.api ? '🟢 구글 시트 연결됨' : '🔗 API 주소 입력 (현재 체험 모드)';
+  b.style.background = state.api ? '#2e7d4f' : '#c2412d';
+}
+const isApiUrl = u => /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(\?.*)?$/.test(u);
 function rosterCount(){ return (state.data && state.data.roster && state.data.roster.count) || state.n; }
 function absentSet(){ return new Set((state.data && state.data.roster && state.data.roster.absent) || []); }
 
@@ -163,7 +178,7 @@ const Q = {
 
 function go(view){
   clearInterval(state.timer); state.timer=null;
-  if (STUDENT_ONLY && !['home','student','silent','done'].includes(view)) view='home';
+  if (STUDENT_ONLY && !['home','student','silent','done','connect'].includes(view)) view='home';
   render[view]();
   window.scrollTo(0,0);
 }
@@ -174,7 +189,18 @@ function go(view){
 const render = {};
 
 render.home = () => {
-  $('#app').innerHTML = `
+  const conn = state.api
+    ? `<div class="card" style="border:2px solid var(--ok);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px"><b style="color:var(--ok)">🟢 구글 시트에 연결되어 있어요</b>
+        <div class="muted">이 화면에서 제출한 진술은 선생님 구글 시트에 바로 기록됩니다.</div></div>
+        ${STUDENT_ONLY?'':`<button class="btn blue" onclick="go('qr')">📱 학생 접속 QR 띄우기</button>
+        <button class="btn ghost" onclick="go('connect')">연결 바꾸기</button>`}</div>`
+    : `<div class="card" style="border:2px solid var(--accent)">
+        <b style="color:var(--accent)">⚠️ 아직 구글 시트에 연결되지 않았어요 (체험 모드)</b>
+        <p class="muted" style="margin:6px 0 12px">지금 제출하면 이 기기에만 저장되고 선생님 시트에는 기록되지 않아요.
+        ${STUDENT_ONLY?'선생님이 띄워 준 QR코드로 다시 접속해 주세요.':'Apps Script 웹 앱 주소를 입력하면 연결됩니다.'}</p>
+        <button class="btn accent" onclick="go('connect')">🔗 API 주소 입력하기</button></div>`;
+  $('#app').innerHTML = conn + `
   <div class="card">
     <h2>오늘의 사건을 함께 풀어 봅시다</h2>
     <p class="muted">기억은 생각보다 쉽게 흔들립니다. 각자 본 것을 솔직하게 적고, 모두의 진술을 모아 사건의 진짜 모습을 함께 맞춰 봅시다.
