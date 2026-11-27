@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리 반 탐정단 · 함께하는 프로파일링</title>
+<style>
+  :root{
+    --bg:#f5f1e8; --paper:#fffdf7; --ink:#2b2a28; --sub:#6b665c; --line:#e2dccd;
+    --accent:#c2412d; --accent2:#2f5d8a; --ok:#2e7d4f; --warn:#b7791f; --soft:#f0e9da;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:-.3px}
+  header .tag{font-size:12px;background:var(--accent);padding:2px 8px;border-radius:99px}
+  header .sp{flex:1}
+  header button{background:transparent;border:1px solid #ffffff55;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+  main{max-width:1100px;margin:0 auto;padding:20px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:0 1px 0 #0000000a}
+  .card h2{margin:0 0 6px;font-size:19px}
+  .card h3{margin:0 0 10px;font-size:16px}
+  .muted{color:var(--sub);font-size:14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .btn{border:none;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff}
+  .btn.accent{background:var(--accent)} .btn.blue{background:var(--accent2)} .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:6px 12px;font-size:13px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .big-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:10px}
+  .big-choice button{padding:28px 20px;border-radius:var(--r);border:2px solid var(--line);background:var(--paper);cursor:pointer;text-align:left;font-size:15px}
+  .big-choice button:hover{border-color:var(--ink)}
+  .big-choice b{display:block;font-size:20px;margin-bottom:6px}
+  label.f{display:block;font-weight:600;margin:16px 0 6px}
+  input[type=text],input[type=password],input[type=number],input[type=time],input[type=url],textarea,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff}
+  textarea{min-height:120px;resize:vertical}
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{padding:9px 16px;border:1.5px solid var(--line);border-radius:99px;background:#fff;cursor:pointer;font-size:15px}
+  .opt.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px}
+  .num{aspect-ratio:1;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
+  .num.on{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  .num.me{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .num.disabled{opacity:.25;cursor:not-allowed}
+  .num.done{background:#e3f1e8;border-color:var(--ok);color:var(--ok)}
+  .num.absent{background:#eee;color:#aaa;text-decoration:line-through}
+  .num small{position:absolute;bottom:2px;font-size:10px;font-weight:500}
+  .steps{display:flex;gap:6px;margin:12px 0 4px}
+  .steps span{flex:1;height:6px;border-radius:9px;background:var(--line)}
+  .steps span.on{background:var(--accent)}
+  .note{background:var(--soft);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--sub)}
+  .note.red{background:#fbe9e5;color:#8a2a1b}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-size:14px}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .stat{display:flex;gap:12px;flex-wrap:wrap}
+  .stat div{flex:1;min-width:130px;background:var(--soft);border-radius:12px;padding:12px 14px}
+  .stat b{display:block;font-size:26px}
+  .bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+  .bar .lb{width:110px;flex-shrink:0}
+  .bar .tr{flex:1;background:var(--soft);border-radius:6px;height:22px;overflow:hidden}
+  .bar .fl{height:100%;background:var(--accent2);border-radius:6px;transition:width .4s}
+  .bar.correct .fl{background:var(--ok)}
+  .bar.correct .lb{font-weight:700;color:var(--ok)}
+  .bar .ct{width:56px;text-align:right;color:var(--sub)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--sub);font-weight:600;font-size:13px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;background:var(--soft)}
+  .pill.ok{background:#e3f1e8;color:var(--ok)} .pill.no{background:#fbe9e5;color:var(--accent)} .pill.wa{background:#fdf2dc;color:var(--warn)}
+  .recall{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;font-size:15px;white-space:pre-wrap}
+  .words{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+  .words span{color:var(--accent2);font-weight:700}
+  .chk{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .chk input{width:20px;height:20px}
+  .chk.done span{text-decoration:line-through;color:var(--sub)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:15px;z-index:99;opacity:0;transition:.3s;pointer-events:none}
+  .toast.show{opacity:1}
+  .class-view{font-size:18px}
+  .class-view .bar{font-size:18px}
+  .class-view .bar .lb{width:150px}
+  .class-view .bar .tr{height:32px}
+  .hide{display:none!important}
+  .mode-badge{font-size:12px;padding:2px 8px;border-radius:99px;background:#ffffff22}
+  @media(max-width:600px){main{padding:12px}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔍 우리 반 탐정단</h1><span class="tag">함께하는 프로파일링</span>
+  <span class="mode-badge" id="connBadge"></span>
+  <span class="sp"></span>
+  <button id="homeBtn" onclick="go('home')">처음으로</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   설정 & 저장소
+   - 학생은 이름 없이 '번호'로만 구분합니다.
+   - Apps Script 웹앱 URL이 없으면 '체험 모드'(이 기기 저장)로 동작합니다.
+   ========================================================= */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const qs = new URLSearchParams(location.search);
+if (qs.get('api')) LS.set('cp_api', qs.get('api'));
+if (qs.get('n'))   LS.set('cp_n', Math.max(1, Math.min(60, parseInt(qs.get('n'))||26)));
+const STUDENT_ONLY = qs.get('mode') === 'student';
+
+const state = {
+  api: LS.get('cp_api', ''),
+  n: LS.get('cp_n', 26),
+  sheet: LS.get('cp_sheet', 'https://docs.google.com/spreadsheets/d/1UvNAn1UPXNTu__Upa95--7HteJ4-xl1At8ePPkv_4_0/edit'),
+  pin: '',
+  data: null,          // fetchAll 결과
+  reveal: false,       // 함께 보기: 정답 공개
+  tab: 'status',
+  timer: null,
+  form: null
+};
+
+/* ---------- 체험 모드용 로컬 백엔드 (Code.gs와 동일한 동작) ---------- */
+const DEMO_PIN = '0601';
+function demoApi(action, payload, pin){
+  const db = LS.get('cp_demo', {Submissions:[], SilentReturns:[], Config:{}});
+  const save = () => LS.set('cp_demo', db);
+  if (action === 'submitSubmission'){ db.Submissions.push({...payload, id: payload.id||Date.now()}); save(); return {ok:true}; }
+  if (action === 'submitSilentReturn'){ db.SilentReturns.push(payload); save(); return {ok:true}; }
+  if (String(pin||'') !== DEMO_PIN) return {ok:false, error:'교사 PIN이 일치하지 않습니다.'};
+  if (action === 'fetchAll') return {ok:true, submissions:db.Submissions, silentReturns:db.SilentReturns,
+      roster:db.Config.roster||null, groundTruth:db.Config.groundTruth||null, checklist:db.Config.checklist||null};
+  if (action === 'saveConfig'){ db.Config = {...payload}; save(); return {ok:true}; }
+  if (action === 'clearAll'){ db.Submissions=[]; db.SilentReturns=[]; save(); return {ok:true}; }
+  return {ok:false, error:'알 수 없는 요청입니다.'};
+}
+
+async function api(action, payload){
+  const body = {action, payload, pin: state.pin};
+  if (!state.api) return demoApi(action, payload, state.pin);
+  // text/plain 으로 보내야 Apps Script에서 CORS preflight 없이 동작합니다.
+  const res = await fetch(state.api, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)});
+  return await res.json();
+}
+
+/* ---------- 공통 유틸 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function nowStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+function updateBadge(){ $('#connBadge').textContent = state.api ? '● 구글 시트 연결됨' : '● 체험 모드(이 기기에만 저장)'; }
+function rosterCount(){ return (state.data && state.data.roster && state.data.roster.count) || state.n; }
+function absentSet(){ return new Set((state.data && state.data.roster && state.data.roster.absent) || []); }
+
+const Q = {
+  door:     {label:'어느 문을 이용했나요?', opts:['앞문','뒷문','모르겠다']},
+  boxCount: {label:'교탁 위 상자는 몇 개였나요?', opts:['0','1','2','3','4','5개 이상','모르겠다']},
+  mintSeen: {label:'민트 사탕을 보았나요?', opts:['봤다','못 봤다','기억나지 않는다']}
+};
+
+function go(view){
+  clearInterval(state.timer); state.timer=null;
+  if (STUDENT_ONLY && !['home','student','silent','done'].includes(view)) view='home';
+  render[view]();
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   화면들
+   ========================================================= */
+const render = {};
+
+render.home = () => {
+  $('#app').innerHTML = `
+  <div class="card">
+    <h2>오늘의 사건을 함께 풀어 봅시다</h2>
+    <p class="muted">기억은 생각보다 쉽게 흔들립니다. 각자 본 것을 솔직하게 적고, 모두의 진술을 모아 사건의 진짜 모습을 함께 맞춰 봅시다.
+    이 활동에서는 <b>이름 대신 번호</b>만 사용합니다.</p>
+    <div class="big-choice">
+      <button onclick="go('student')"><b>📝 진술하기</b>내가 본 것과 기억나는 것을 적어요</button>
+      <button onclick="go('silent')"><b>🤫 비밀 반환함</b>누구에게도 이름이 알려지지 않아요</button>
+      ${STUDENT_ONLY?'':`<button onclick="go('teacherLogin')"><b>🧑‍🏫 교사 화면</b>결과 분석 · 함께 보기 · 설정</button>`}
+    </div>
+  </div>`;
+};
+
+/* ---------------- 학생 진술 ---------------- */
+render.student = () => {
+  state.form = {step:0, mode:'numbered', studentId:null, freeRecall:'', claimedExitTime:'', door:'', boxCount:'', mintSeen:'',
+                companion:'', observedIds:[], extraClue:''};
+  drawStudent();
+};
+
+function drawStudent(){
+  const f = state.form, N = state.n, total = 5;
+  const stepsBar = `<div class="steps">${Array.from({length:total},(_,i)=>`<span class="${i<=f.step?'on':''}"></span>`).join('')}</div>`;
+  let body = '';
+  if (f.step === 0){
+    body = `
+      <h2>1. 참여 방법 고르기</h2>
+      <p class="muted">번호를 남기면 선생님이 진술끼리 비교할 수 있어요. 익명도 괜찮아요.</p>
+      <div class="opts" style="margin:12px 0">
+        <button class="opt ${f.mode==='numbered'?'on':''}" onclick="setF('mode','numbered')">번호 남기기</button>
+        <button class="opt ${f.mode==='anonymous'?'on':''}" onclick="setF('mode','anonymous');setF('studentId',null)">익명으로</button>
+      </div>
+      ${f.mode==='numbered'?`<label class="f">내 번호</label>
+        <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<button class="num ${f.studentId===n?'me':''}" onclick="setF('studentId',${n})">${n}</button>`).join('')}</div>`:''}
+      ${nav(f.mode==='numbered' && !f.studentId)}`;
+  } else if (f.step === 1){
+    body = `
+      <h2>2. 자유롭게 떠올리기</h2>
+      <p class="muted">질문을 보기 전에, 기억나는 것을 <b>순서대로 · 본 그대로</b> 적어 보세요. 추측은 "~같다"라고 써 주세요.</p>
+      <textarea id="fr" placeholder="예) 점심시간이 끝날 무렵 교실에 들어왔는데…" oninput="state.form.freeRecall=this.value">${esc(f.freeRecall)}</textarea>
+      ${nav(false)}`;
+  } else if (f.step === 2){
+    body = `
+      <h2>3. 자세히 떠올리기</h2>
+      <label class="f">내가 교실을 나간 시각</label>
+      <input type="time" value="${esc(f.claimedExitTime)}" onchange="state.form.claimedExitTime=this.value">
+      <label class="opt" style="display:inline-block;margin-top:8px;border:none;padding:0;font-size:14px">
+        <input type="checkbox" ${f.claimedExitTime==='모름'?'checked':''} onchange="setF('claimedExitTime', this.checked?'모름':'')"> 잘 모르겠어요</label>
+      ${Object.entries(Q).map(([k,q])=>`
+        <label class="f">${q.label}</label>
+        <div class="opts">${q.opts.map(o=>`<button class="opt ${f[k]===o?'on':''}" onclick="setF('${k}','${o}')">${o}</button>`).join('')}</div>`).join('')}
+      ${nav(false)}`;
+  } else if (f.step === 3){
+    body = `
+      <h2>4. 함께 있던 친구</h2>
+      <label class="f">그때 나와 함께 있던 친구 번호 (1명)</label>
+      <div class="opts" style="margin-bottom:8px">
+        <button class="opt ${f.companion==='없음'?'on':''}" onclick="setF('companion','없음')">혼자 있었어요</button>
+      </div>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<button class="num ${String(f.companion)===String(n)?'on':''} ${f.studentId===n?'disabled':''}" ${f.studentId===n?'disabled':''} onclick="setF('companion','${n}')">${n}</button>`).join('')}</div>
+      <label class="f">교실에서 본 친구 번호 (여러 명 선택 가능)</label>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<button class="num ${f.observedIds.includes(n)?'on':''} ${f.studentId===n?'disabled':''}" ${f.studentId===n?'disabled':''} onclick="toggleObs(${n})">${n}</button>`).join('')}</div>
+      ${nav(false)}`;
+  } else if (f.step === 4){
+    body = `
+      <h2>5. 마지막 단서</h2>
+      <label class="f">그 밖에 이상했던 점, 들은 소리, 냄새 등 (선택)</label>
+      <textarea placeholder="예) 뒷문 쪽에서 비닐 소리가 났어요" oninput="state.form.extraClue=this.value">${esc(f.extraClue)}</textarea>
+      <div class="note" style="margin-top:14px">제출 전 확인: ${f.mode==='numbered'?`<b>${f.studentId}번</b>`:'<b>익명</b>'} · 문 ${esc(f.door||'-')} · 상자 ${esc(f.boxCount||'-')} · 민트 ${esc(f.mintSeen||'-')} · 본 친구 ${f.observedIds.length}명</div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost" onclick="stepF(-1)">이전</button>
+        <button class="btn accent" id="subBtn" onclick="submitStudent()">진술 제출하기</button>
+      </div>`;
+  }
+  $('#app').innerHTML = `<div class="card">${stepsBar}${body}</div>`;
+}
+function nav(disableNext){
+  const f = state.form;
+  return `<div class="row" style="margin-top:18px">
+    ${f.step>0?`<button class="btn ghost" onclick="stepF(-1)">이전</button>`:''}
+    <button class="btn" ${disableNext?'disabled':''} onclick="stepF(1)">다음</button></div>`;
+}
+function setF(k,v){ state.form[k]=v; drawStudent(); }
+function stepF(d){ state.form.step=Math.max(0,Math.min(4,state.form.step+d)); drawStudent(); window.scrollTo(0,0); }
+function toggleObs(n){ const a=state.form.observedIds; const i=a.indexOf(n); i>=0?a.splice(i,1):a.push(n); a.sort((x,y)=>x-y); drawStudent(); }
+
+async function submitStudent(){
+  const f = state.form, b = $('#subBtn'); b.disabled = true; b.textContent='보내는 중…';
+  const payload = {id:Date.now(), timestamp:nowStr(), mode:f.mode, studentId:f.mode==='numbered'?f.studentId:'',
+    freeRecall:f.freeRecall.trim(), claimedExitTime:f.claimedExitTime, door:f.door, boxCount:f.boxCount, mintSeen:f.mintSeen,
+    companion:f.companion, observedIds:f.observedIds, extraClue:f.extraClue.trim()};
+  try{
+    const r = await api('submitSubmission', payload);
+    if (!r.ok) throw new Error(r.error);
+    render.done('진술이 제출되었어요. 고마워요, 탐정님! 🕵️');
+  }catch(e){ b.disabled=false; b.textContent='진술 제출하기'; toast('제출 실패: '+e.message); }
+}
+
+render.done = (msg='제출되었어요.') => {
+  $('#app').innerHTML = `<div class="card" style="text-align:center;padding:48px 20px">
+    <div style="font-size:52px">✅</div><h2>${esc(msg)}</h2>
+    <p class="muted">이제 선생님 화면에서 모두의 진술을 함께 살펴볼 거예요.</p>
+    <button class="btn" onclick="go('home')">처음으로</button></div>`;
+};
+
+/* ---------------- 비밀 반환함 ---------------- */
+render.silent = () => {
+  $('#app').innerHTML = `<div class="card">
+    <h2>🤫 비밀 반환함</h2>
+    <p class="muted">이곳에는 <b>번호도 이름도 저장되지 않아요.</b> 물건을 돌려주고 싶거나, 선생님께만 조용히 알리고 싶은 것이 있으면 적어 주세요.
+    용기 내 주어 고마워요.</p>
+    <label class="f">하고 싶은 말 (선택)</label>
+    <textarea id="sr" placeholder="예) 내일 아침 교탁 서랍에 넣어 둘게요."></textarea>
+    <div class="row" style="margin-top:14px"><button class="btn accent" id="srBtn" onclick="submitSilent()">조용히 보내기</button></div>
+  </div>`;
+};
+async function submitSilent(){
+  const b=$('#srBtn'); b.disabled=true;
+  try{
+    const r = await api('submitSilentReturn', {time:nowStr(), note:$('#sr').value.trim()});
+    if(!r.ok) throw new Error(r.error);
+    render.done('잘 전달되었어요. 아무도 누가 보냈는지 알 수 없어요.');
+  }catch(e){ b.disabled=false; toast('전송 실패: '+e.message); }
+}
+
+/* ---------------- 교사 로그인 ---------------- */
+render.teacherLogin = () => {
+  $('#app').innerHTML = `<div class="card" style="max-width:480px;margin:40px auto">
+    <h2>교사 화면</h2>
+    <p class="muted">${state.api?'Code.gs의 TEACHER_PIN을 입력하세요.':'체험 모드입니다. 기본 PIN은 0601입니다.'}</p>
+    <label class="f">교사 PIN</label>
+    <input type="password" id="pin" inputmode="numeric" onkeydown="if(event.key==='Enter')login()">
+    <div class="row" style="margin-top:14px"><button class="btn" onclick="login()">들어가기</button>
+    <button class="btn ghost" onclick="go('connect')">연결 설정</button></div>
+  </div>`;
+  setTimeout(()=>$('#pin')&&$('#pin').focus(),50);
+};
+async function login(){
+  state.pin = $('#pin').value.trim();
+  try{
+    const r = await api('fetchAll'); if(!r.ok) throw new Error(r.error);
+    state.data = r; state.tab='status'; go('teacher');
+  }catch(e){ toast(e.message); }
+}
+
+/* ---------------- 연결 설정 ---------------- */
+render.connect = () => {
+  $('#app').innerHTML = `<div class="card" style="max-width:640px;margin:0 auto">
+    <h2>연결 설정</h2>
+    <p class="muted">Apps Script를 <b>웹 앱으로 배포</b>(실행: 나 / 액세스: 모든 사용자)한 뒤, 끝이 <code>/exec</code>인 URL을 붙여 넣으세요. 비워 두면 체험 모드로 동작합니다.</p>
+    <label class="f">웹 앱 URL</label>
+    <input type="url" id="apiUrl" value="${esc(state.api)}" placeholder="https://script.google.com/macros/s/…/exec">
+    <label class="f">구글 시트 주소 (교사 화면에서 바로 열기용, 선택)</label>
+    <input type="url" id="sheetUrl" value="${esc(state.sheet)}" placeholder="https://docs.google.com/spreadsheets/d/…">
+    <label class="f">학생 수 (번호 범위)</label>
+    <input type="number" id="nIn" min="1" max="60" value="${state.n}">
+    <div class="row" style="margin-top:14px">
+      <button class="btn" onclick="saveConn()">저장</button>
+      <button class="btn ghost" onclick="testConn()">연결 확인</button>
+      <button class="btn ghost" onclick="go('teacherLogin')">돌아가기</button>
+    </div>
+  </div>`;
+};
+function saveConn(){
+  state.sheet = $('#sheetUrl').value.trim(); LS.set('cp_sheet', state.sheet);
+  state.api = $('#apiUrl').value.trim(); state.n = Math.max(1,Math.min(60,parseInt($('#nIn').value)||26));
+  LS.set('cp_api', state.api); LS.set('cp_n', state.n); updateBadge(); toast('저장했어요'); go('teacherLogin');
+}
+async function testConn(){
+  const u = $('#apiUrl').value.trim(); if(!u) return toast('URL을 입력하세요');
+  try{ const r = await (await fetch(u)).json(); toast(r.ok?'연결 성공: '+r.service:'응답 이상'); }catch(e){ toast('연결 실패: '+e.message); }
+}
+
+/* =========================================================
+   교사 대시보드
+   ========================================================= */
+render.teacher = () => {
+  const tabs = [['status','📋 제출 현황'],['analysis','🔎 진술 분석'],['cross','🧩 교차 확인'],['class','📺 함께 보기'],['silent','🤫 비밀 반환함'],['config','⚙️ 사건 설정']];
+  $('#app').innerHTML = `
+    <div class="tabs">${tabs.map(([k,t])=>`<button class="tab ${state.tab===k?'on':''}" onclick="setTab('${k}')">${t}</button>`).join('')}
+      <span style="flex:1"></span>${state.sheet?`<a class="btn sm ghost" style="text-decoration:none" href="${esc(state.sheet)}" target="_blank" rel="noopener">📄 구글 시트 열기</a>`:''}<button class="btn sm ghost" onclick="refresh()">↻ 새로고침</button></div>
+    <div id="tview"></div>`;
+  tviews[state.tab]();
+  if (state.tab==='class' || state.tab==='status'){ state.timer = setInterval(()=>refresh(true), 10000); }
+};
+function setTab(t){ clearInterval(state.timer); state.tab=t; render.teacher(); }
+async function refresh(silent){
+  try{ const r = await api('fetchAll'); if(!r.ok) throw new Error(r.error); state.data=r;
+    if(silent){ tviews[state.tab](); } else { render.teacher(); toast('최신 내용으로 바꿨어요'); } }
+  catch(e){ if(!silent) toast(e.message); }
+}
+
+const subs = () => (state.data && state.data.submissions) || [];
+const gt = () => (state.data && state.data.groundTruth) || null;
+function latestByStudent(){
+  const m = new Map(); subs().forEach(s=>{ if(s.studentId) m.set(Number(s.studentId), s); }); return m;
+}
+function dist(key, opts){
+  const c = {}; opts.forEach(o=>c[o]=0); let total=0;
+  subs().forEach(s=>{ const v=s[key]; if(v===''||v==null) return; c[v]=(c[v]||0)+1; total++; });
+  return {c,total};
+}
+function bars(key, opts, showAnswer){
+  const {c,total} = dist(key, opts); const g = gt(); const ans = g && g[key];
+  return Object.entries(c).map(([o,v])=>{
+    const pct = total? Math.round(v/total*100):0; const ok = showAnswer && ans && String(ans)===String(o);
+    return `<div class="bar ${ok?'correct':''}"><span class="lb">${ok?'✔ ':''}${esc(o)}</span><span class="tr"><span class="fl" style="width:${pct}%"></span></span><span class="ct">${v}명 ${pct}%</span></div>`;
+  }).join('') || '<p class="muted">아직 응답이 없어요.</p>';
+}
+function scoreOf(s){
+  const g = gt(); if(!g) return null; let pts=0, max=0;
+  ['door','boxCount','mintSeen'].forEach(k=>{ if(g[k]){ max++; if(String(s[k])===String(g[k])) pts++; } });
+  if (g.presentIds && g.presentIds.length && s.observedIds && s.observedIds.length){
+    max++; const P=new Set(g.presentIds); const hit=s.observedIds.filter(i=>P.has(Number(i))).length; pts += hit/s.observedIds.length;
+  }
+  return max? Math.round(pts/max*100) : null;
+}
+function topWords(texts, k=24){
+  const stop = new Set(['그리고','그래서','그런데','있었다','있었어요','같다','같아요','했다','했어요','때','것','수','더','좀','너무','정말','진짜','그때','저는','나는','제가','내가']);
+  const c={}; texts.join(' ').replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/).forEach(w=>{
+    w=w.replace(/(은|는|이|가|을|를|에|에서|으로|로|와|과|도|만|의|요)$/,''); if(w.length<2||stop.has(w)) return; c[w]=(c[w]||0)+1; });
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,k);
+}
+
+const tviews = {};
+
+/* ---------- 제출 현황 ---------- */
+tviews.status = () => {
+  const N = rosterCount(), ab = absentSet(), by = latestByStudent();
+  const anon = subs().filter(s=>!s.studentId).length;
+  const present = N - ab.size;
+  $('#tview').innerHTML = `
+    <div class="card"><div class="stat">
+      <div><span class="muted">번호 제출</span><b>${by.size} / ${present}</b></div>
+      <div><span class="muted">익명 제출</span><b>${anon}</b></div>
+      <div><span class="muted">전체 진술</span><b>${subs().length}</b></div>
+      <div><span class="muted">비밀 반환함</span><b>${(state.data.silentReturns||[]).length}</b></div>
+    </div></div>
+    <div class="card"><h3>번호별 제출 현황 <span class="muted">(10초마다 자동 갱신)</span></h3>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<div class="num ${ab.has(n)?'absent':by.has(n)?'done':''}">${n}${ab.has(n)?'<small>결석</small>':by.has(n)?'<small>완료</small>':''}</div>`).join('')}</div>
+      <p class="muted" style="margin-top:12px">학생용 링크: <code id="slink"></code> <button class="btn sm ghost" onclick="copyLink()">복사</button></p>
+    </div>`;
+  $('#slink').textContent = studentLink();
+};
+function studentLink(){
+  const u = new URL(location.href.split('?')[0]); u.searchParams.set('mode','student'); u.searchParams.set('n', rosterCount());
+  if(state.api) u.searchParams.set('api', state.api); return u.toString();
+}
+function copyLink(){ navigator.clipboard.writeText(studentLink()).then(()=>toast('학생용 링크를 복사했어요')); }
+
+/* ---------- 진술 분석 (교사 전용, 번호 표시) ---------- */
+tviews.analysis = () => {
+  const list = subs().slice().sort((a,b)=>(Number(a.studentId)||999)-(Number(b.studentId)||999));
+  const g = gt();
+  $('#tview').innerHTML = `
+    <div class="grid2">
+      ${Object.entries(Q).map(([k,q])=>`<div class="card"><h3>${q.label}</h3>${bars(k,q.opts,true)}
+        ${g&&g[k]?`<p class="muted">실제: <b>${esc(g[k])}</b></p>`:''}</div>`).join('')}
+      <div class="card"><h3>나간 시각 분포</h3>${timeline()}</div>
+    </div>
+    <div class="card"><h3>진술 목록 <span class="muted">교사만 보는 화면입니다</span></h3>
+      <div style="overflow-x:auto"><table>
+        <tr><th>번호</th><th>나간 시각</th><th>문</th><th>상자</th><th>민트</th><th>함께</th><th>본 친구</th><th>기억 일치도</th><th>자유 회상 / 추가 단서</th></tr>
+        ${list.map(s=>{ const sc=scoreOf(s); return `<tr>
+          <td><b>${s.studentId?esc(s.studentId)+'번':'<span class="pill">익명</span>'}</b></td>
+          <td>${esc(s.claimedExitTime||'-')}</td>
+          <td>${cell(s,'door')}</td><td>${cell(s,'boxCount')}</td><td>${cell(s,'mintSeen')}</td>
+          <td>${esc(s.companion||'-')}</td>
+          <td>${(s.observedIds||[]).map(i=>obsPill(i)).join(' ')||'-'}</td>
+          <td>${sc==null?'<span class="muted">정답 미설정</span>':`<span class="pill ${sc>=70?'ok':sc>=40?'wa':'no'}">${sc}%</span>`}</td>
+          <td style="min-width:240px">${esc(s.freeRecall)}${s.extraClue?`<br><span class="muted">+ ${esc(s.extraClue)}</span>`:''}</td></tr>`;}).join('')||'<tr><td colspan="9" class="muted">아직 진술이 없어요.</td></tr>'}
+      </table></div>
+      <p class="muted">기억 일치도는 '사건 설정'에 입력한 실제 상황과 얼마나 같은지를 나타냅니다. 학생 평가가 아닌, 기억이 얼마나 흔들리는지 보여 주는 수업 자료로만 활용하세요.</p>
+    </div>`;
+};
+function cell(s,k){ const g=gt(); const v=s[k]||'-'; if(!g||!g[k]||v==='-') return esc(v);
+  return `<span class="pill ${String(v)===String(g[k])?'ok':'no'}">${esc(v)}</span>`; }
+function obsPill(i){ const g=gt(); if(!g||!g.presentIds||!g.presentIds.length) return `<span class="pill">${esc(i)}</span>`;
+  return `<span class="pill ${g.presentIds.includes(Number(i))?'ok':'no'}" title="${g.presentIds.includes(Number(i))?'실제로 있었음':'실제로는 없었음(기억 오류)'}">${esc(i)}</span>`; }
+function timeline(){
+  const t = subs().map(s=>s.claimedExitTime).filter(x=>/^\d{1,2}:\d{2}/.test(x||'')).map(x=>x.slice(0,5)).sort();
+  if(!t.length) return '<p class="muted">시각 응답이 없어요.</p>';
+  const c={}; t.forEach(x=>c[x]=(c[x]||0)+1); const max=Math.max(...Object.values(c));
+  const g=gt();
+  return Object.entries(c).map(([k,v])=>`<div class="bar ${g&&g.exitTime===k?'correct':''}"><span class="lb">${k}</span><span class="tr"><span class="fl" style="width:${v/max*100}%"></span></span><span class="ct">${v}명</span></div>`).join('')
+    + (g&&g.exitTime?`<p class="muted">사건 시각: <b>${esc(g.exitTime)}</b></p>`:'');
+}
+
+/* ---------- 교차 확인 ---------- */
+tviews.cross = () => {
+  const N = rosterCount(), by = latestByStudent(), g = gt();
+  // 목격 언급 횟수
+  const seen = {}; for(let i=1;i<=N;i++) seen[i]=0;
+  subs().forEach(s=>(s.observedIds||[]).forEach(i=>{ if(seen[i]!=null) seen[i]++; }));
+  const maxSeen = Math.max(1,...Object.values(seen));
+  // 함께 있던 친구 상호 일치
+  const pairs = [];
+  by.forEach((s,id)=>{ const c=parseInt(s.companion); if(!c) return; const o=by.get(c);
+    let st='응답 없음'; if(o){ st = String(o.companion)===String(id)?'서로 일치':'불일치'; }
+    if(st==='서로 일치' && c<id) return; pairs.push({a:id,b:c,st,ta:s.claimedExitTime,tb:o?o.claimedExitTime:''}); });
+  $('#tview').innerHTML = `
+    <div class="card"><h3>친구들이 "교실에서 봤다"고 말한 횟수</h3>
+      <p class="muted">진하게 표시될수록 많이 언급되었어요. ${g&&g.presentIds&&g.presentIds.length?'초록 테두리 = 실제로 교실에 있던 번호.':''}</p>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>{ const a=seen[n]/maxSeen; const real=g&&g.presentIds&&g.presentIds.includes(n);
+        return `<div class="num" style="background:rgba(47,93,138,${a*0.85});color:${a>.5?'#fff':'inherit'};${real?'border:3px solid var(--ok)':''}">${n}<small>${seen[n]}회</small></div>`; }).join('')}</div>
+    </div>
+    <div class="card"><h3>"함께 있었다" 진술 맞춰 보기</h3>
+      <table><tr><th>진술</th><th>상대 번호의 진술</th><th>결과</th><th>나간 시각</th></tr>
+      ${pairs.map(p=>`<tr><td>${p.a}번 → ${p.b}번</td><td>${by.get(p.b)?esc(by.get(p.b).companion||'-'):'-'}</td>
+        <td><span class="pill ${p.st==='서로 일치'?'ok':p.st==='불일치'?'no':''}">${p.st}</span></td>
+        <td>${esc(p.ta||'-')} / ${esc(p.tb||'-')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">함께 있던 친구를 적은 진술이 없어요.</td></tr>'}
+      </table>
+      <p class="muted">불일치는 거짓말이 아니라 기억 차이일 때가 훨씬 많습니다. 시간 착각, 장소 혼동 등 이유를 함께 이야기해 보세요.</p>
+    </div>`;
+};
+
+/* ---------- 함께 보기 (프로젝터용, 번호 비공개) ---------- */
+tviews.class = () => {
+  const g = gt(), cl = (state.data.checklist)||[];
+  const words = topWords(subs().map(s=>s.freeRecall+' '+(s.extraClue||'')));
+  const maxW = words.length? words[0][1]:1;
+  const recalls = subs().map(s=>s.freeRecall).filter(Boolean).sort(()=>Math.random()-.5).slice(0,6);
+  $('#tview').innerHTML = `<div class="class-view">
+    <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div><span class="muted">지금까지 모인 진술</span><div style="font-size:44px;font-weight:800">${subs().length}개</div></div>
+      <span style="flex:1"></span>
+      <button class="btn ${state.reveal?'ghost':'accent'}" onclick="state.reveal=!state.reveal;tviews.class()">${state.reveal?'정답 가리기':'🔓 실제 상황 공개'}</button>
+    </div>
+    <div class="note" style="margin-bottom:16px">이 화면에는 번호가 나오지 않아요. 누가 썼는지가 아니라 <b>우리의 기억이 어떻게 모이고 엇갈리는지</b>를 봅니다.</div>
+    <div class="grid2">
+      ${Object.entries(Q).map(([k,q])=>`<div class="card"><h3>${q.label}</h3>${bars(k,q.opts,state.reveal)}</div>`).join('')}
+      <div class="card"><h3>자주 나온 단어</h3><div class="words">${words.map(([w,c])=>`<span style="font-size:${14+Math.round(c/maxW*26)}px;opacity:${.5+c/maxW*.5}">${esc(w)}</span>`).join('')||'<span class="muted">아직 없어요</span>'}</div></div>
+    </div>
+    ${cl.length?`<div class="card"><h3>🧩 함께 찾을 단서</h3>${cl.map((c,i)=>`<label class="chk ${c.done?'done':''}"><input type="checkbox" ${c.done?'checked':''} onchange="toggleCheck(${i},this.checked)"><span>${esc(c.text)}</span></label>`).join('')}</div>`:''}
+    <div class="card"><h3>친구들의 기억 (무작위 6개)</h3>${recalls.map(r=>`<div class="recall">${esc(r)}</div>`).join('')||'<p class="muted">아직 없어요</p>'}
+      <button class="btn sm ghost" onclick="tviews.class()">다른 진술 보기</button></div>
+    ${state.reveal&&g?`<div class="card" style="border:2px solid var(--ok)"><h3>✔ 실제로 일어난 일</h3>
+      <p>${g.exitTime?`시각 <b>${esc(g.exitTime)}</b> · `:''}${g.door?`문 <b>${esc(g.door)}</b> · `:''}${g.boxCount?`상자 <b>${esc(g.boxCount)}개</b> · `:''}${g.mintSeen?`민트 사탕 <b>${esc(g.mintSeen)}</b>`:''}</p>
+      ${g.story?`<div class="recall">${esc(g.story)}</div>`:''}</div>`:''}
+  </div>`;
+};
+async function toggleCheck(i, v){
+  state.data.checklist[i].done = v; tviews.class();
+  try{ const r = await api('saveConfig', currentConfig()); if(!r.ok) throw new Error(r.error); }catch(e){ toast('저장 실패: '+e.message); }
+}
+function currentConfig(){ return {roster:state.data.roster, groundTruth:state.data.groundTruth, checklist:state.data.checklist}; }
+
+/* ---------- 비밀 반환함 ---------- */
+tviews.silent = () => {
+  const r = (state.data.silentReturns||[]).slice().reverse();
+  $('#tview').innerHTML = `<div class="card"><h3>🤫 비밀 반환함 (${r.length})</h3>
+    <p class="muted">번호와 이름이 저장되지 않는 메시지입니다. 반환 의사가 있다면 교실 앞에서 언급하지 말고, 조용히 돌려놓을 수 있는 방법을 안내해 주세요.</p>
+    ${r.map(x=>`<div class="recall"><span class="muted">${esc(x.time)}</span><br>${esc(x.note||'(내용 없음)')}</div>`).join('')||'<p class="muted">아직 메시지가 없어요.</p>'}</div>`;
+};
+
+/* ---------- 사건 설정 ---------- */
+tviews.config = () => {
+  const ro = state.data.roster || {count:state.n, absent:[]};
+  const g = state.data.groundTruth || {exitTime:'',door:'',boxCount:'',mintSeen:'',presentIds:[],story:''};
+  const cl = state.data.checklist || [];
+  state.cfgDraft = {roster:{count:ro.count, absent:[...(ro.absent||[])]}, groundTruth:{...g, presentIds:[...(g.presentIds||[])]}, checklist:cl.map(c=>({...c}))};
+  drawConfig();
+};
+function drawConfig(){
+  const d = state.cfgDraft, N = d.roster.count;
+  $('#tview').innerHTML = `
+    <div class="card"><h3>학급 번호</h3>
+      <label class="f">학생 수</label><input type="number" min="1" max="60" value="${N}" onchange="state.cfgDraft.roster.count=Math.max(1,Math.min(60,parseInt(this.value)||26));drawConfig()">
+      <label class="f">결석 번호 (눌러서 표시)</label>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<button class="num ${d.roster.absent.includes(n)?'absent':''}" onclick="togArr(state.cfgDraft.roster.absent,${n})">${n}</button>`).join('')}</div>
+    </div>
+    <div class="card"><h3>실제 상황 (정답) <span class="muted">학생에게는 '함께 보기'에서 공개할 때만 보여요</span></h3>
+      <div class="grid2">
+        <div><label class="f">사건 시각</label><input type="time" value="${esc(d.groundTruth.exitTime)}" onchange="state.cfgDraft.groundTruth.exitTime=this.value"></div>
+        ${Object.entries(Q).map(([k,q])=>`<div><label class="f">${q.label}</label>
+          <select onchange="state.cfgDraft.groundTruth['${k}']=this.value"><option value="">(설정 안 함)</option>
+          ${q.opts.filter(o=>!['모르겠다','기억나지 않는다'].includes(o)).map(o=>`<option ${d.groundTruth[k]===o?'selected':''}>${o}</option>`).join('')}</select></div>`).join('')}
+      </div>
+      <label class="f">실제로 교실에 있던 번호</label>
+      <div class="nums">${Array.from({length:N},(_,i)=>i+1).map(n=>`<button class="num ${d.groundTruth.presentIds.includes(n)?'on':''}" onclick="togArr(state.cfgDraft.groundTruth.presentIds,${n})">${n}</button>`).join('')}</div>
+      <label class="f">사건 이야기 (공개 시 보여 줄 설명)</label>
+      <textarea onchange="state.cfgDraft.groundTruth.story=this.value" placeholder="예) 12:50, 선생님과 미리 약속한 '연기자'가 뒷문으로 들어와 민트 사탕 상자 하나를 가지고 나갔습니다.">${esc(d.groundTruth.story||'')}</textarea>
+    </div>
+    <div class="card"><h3>함께 찾을 단서 체크리스트</h3>
+      ${d.checklist.map((c,i)=>`<div class="row" style="margin-bottom:6px"><input type="text" value="${esc(c.text)}" onchange="state.cfgDraft.checklist[${i}].text=this.value" style="flex:1">
+        <button class="btn sm ghost" onclick="state.cfgDraft.checklist.splice(${i},1);drawConfig()">삭제</button></div>`).join('')}
+      <button class="btn sm ghost" onclick="state.cfgDraft.checklist.push({text:'',done:false});drawConfig()">+ 단서 추가</button>
+    </div>
+    <div class="row" style="margin-bottom:16px">
+      <button class="btn accent" onclick="saveCfg()">설정 저장</button>
+      <button class="btn ghost" onclick="go('connect')">연결 설정</button>
+      ${!state.api?`<button class="btn ghost" onclick="seedDemo()">체험용 예시 진술 넣기</button>`:''}
+      <span style="flex:1"></span>
+      <button class="btn ghost" style="color:var(--accent)" onclick="clearAll()">진술·반환함 모두 지우기</button>
+    </div>`;
+}
+function togArr(a,n){ const i=a.indexOf(n); i>=0?a.splice(i,1):a.push(n); a.sort((x,y)=>x-y); drawConfig(); }
+async function saveCfg(){
+  const d = state.cfgDraft; d.checklist = d.checklist.filter(c=>c.text.trim());
+  try{ const r = await api('saveConfig', d); if(!r.ok) throw new Error(r.error);
+    state.data.roster=d.roster; state.data.groundTruth=d.groundTruth; state.data.checklist=d.checklist; state.n=d.roster.count; LS.set('cp_n',state.n);
+    toast('저장했어요'); drawConfig(); }catch(e){ toast('저장 실패: '+e.message); }
+}
+async function clearAll(){
+  if(!confirm('모든 진술과 비밀 반환함 내용을 지울까요? 되돌릴 수 없습니다.')) return;
+  try{ const r = await api('clearAll'); if(!r.ok) throw new Error(r.error); await refresh(true); toast('모두 지웠어요'); }catch(e){ toast(e.message); }
+}
+async function seedDemo(){
+  const N = state.cfgDraft.roster.count, pick=a=>a[Math.floor(Math.random()*a.length)];
+  const texts = ['점심 먹고 들어왔는데 교탁 위에 상자가 있었다. 뒷문 쪽에서 누가 나간 것 같다.','민트 냄새가 났던 것 같아요. 앞문으로 나갔어요.',
+    '친구랑 이야기하느라 잘 못 봤다. 상자는 두 개였던 것 같다.','종 치기 직전에 비닐 소리가 들렸어요.','교탁에 상자 세 개가 쌓여 있었고 하나가 없어졌다.'];
+  for(let i=1;i<=Math.min(N,18);i++){
+    const obs = Array.from({length:3},()=>1+Math.floor(Math.random()*N)).filter(x=>x!==i);
+    await demoApi('submitSubmission',{id:Date.now()+i,timestamp:nowStr(),mode:i%6===0?'anonymous':'numbered',studentId:i%6===0?'':i,
+      freeRecall:pick(texts),claimedExitTime:pick(['12:45','12:50','12:50','12:55','13:00']),door:pick(['앞문','뒷문','뒷문','모르겠다']),
+      boxCount:pick(['2','3','3','4','모르겠다']),mintSeen:pick(['봤다','봤다','못 봤다','기억나지 않는다']),companion:String(pick([i+1,i-1,'없음'])),
+      observedIds:[...new Set(obs)],extraClue:''},DEMO_PIN);
+  }
+  await refresh(true); toast('예시 진술을 넣었어요');
+}
+
+/* ---------- 시작 ---------- */
+if (STUDENT_ONLY) $('#homeBtn').textContent='처음으로';
+updateBadge(); go('home');
+</script>
+</body>
+</html>
